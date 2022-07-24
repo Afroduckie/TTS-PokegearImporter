@@ -1,6 +1,6 @@
 # PokeGear Deck Importer
 
-*"I often find my most fun projects are born from hate." -- Mahatma Gandalf: Marchtember 1th, 2077
+"I often find my most fun projects are born from hate." -- Mahatma Gandalf: Marchtember 1th, 2077
 
 PokeGear is a tool allowing the user to dynamically generate custom Pokemon TCG decks for use within Tabletop Simulator without reliance on mods, file sharing, or external downloads. Users can copy a decklist from a source such as a Pokemon TCGO export-to-clipboard and paste it into PokeGear, which will then use a webcrawler to assign and format an image for each card to a custom deck that Tabletop Simulator (TTS) can read. 
 
