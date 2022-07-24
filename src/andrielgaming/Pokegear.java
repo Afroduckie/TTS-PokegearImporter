@@ -9,7 +9,8 @@ import andrielgaming.parsing.TabletopParser;
 /* FUNCTIONALITY:: Core routines all seem to work properly
  * 
  */
-@JsonIgnoreProperties(value ={ "deckIDs", "cardset", "customDeck", "nickname", "cardid", "cardId", "cardID" })
+@JsonIgnoreProperties(value =
+{ "deckIDs", "cardset", "customDeck", "nickname", "cardid", "cardId", "cardID" })
 public class Pokegear
 {
 	// Default file path with system user injected, usually works
@@ -52,6 +53,7 @@ public class Pokegear
 			// First loop iteration includes JSON file setup.
 			out.println("\rPlease enter a name for this deck:: ");
 			String name = s.nextLine().trim();
+			
 			out.println("Paste your deck list into this text file, save it, and close it.");
 			try
 			{
@@ -61,7 +63,7 @@ public class Pokegear
 				java.awt.Desktop.getDesktop().edit(temp);
 				out.println("Once you are done, click into this window and hit ENTER to continue...");
 				System.in.read();
-
+				
 				out.print("\rVerifying file was saved...");
 				if (temp.exists())
 					out.println("\rVerified that file exists on drive!");
@@ -71,6 +73,18 @@ public class Pokegear
 					System.exit(1);
 				}
 				
+
+				/*String temp = "";
+				if (temp.length() <= 1)
+				{
+					out.println("Paste your deck list into this window and hit <ENTER>...");
+					//System.in.read();
+					while (s.hasNextLine())
+					{
+						temp = s.nextLine().trim() + "\n";
+					}
+				}*/
+
 				out.println("Pokegear will now attempt to parse this decklist! \n NOTE:: Please be patient! As a courtesy, there is a pre-programmed cushion to prevent the program from hugging the server to death.");
 				boolean success = TabletopParser.doParse(temp, defPath, name, true);
 
