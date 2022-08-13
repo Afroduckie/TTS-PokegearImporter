@@ -119,9 +119,9 @@ public class TabletopParser implements Runnable
 		cardset = new TreeMap<>();
 		mapper = null;
 		writ = null;
-		errorcards = null;
 		decklist = new ArrayList<>();														// ArrayList containing string arrays with each line of input from decklist
-		cardlist = new ArrayList<>();
+		cardlist = new ArrayList<String>();
+		errorcards = new ArrayList<String>();
 		instanceIDs = new LinkedTreeMap<Integer, Integer>();								// Key is the UNIQUE ID, value is the CARD ID
 		instanceURLs = new LinkedTreeMap<Integer, ArrayList<String>>();
 		pokedex = new TreeMap<>();
@@ -148,7 +148,6 @@ public class TabletopParser implements Runnable
 			@Override
 			public void run()
 			{
-				guiDeckList.setItems(new String[0]);
 				progressBar.setMaximum(decklist.size());
 				progressBar.setSelection(0);
 				progressBar.setVisible(true);
@@ -227,7 +226,6 @@ public class TabletopParser implements Runnable
 							pkmncards = Jsoup.connect(cardDB + set + "+" + num).get();
 					} catch (Exception e)
 					{
-						guiDeckList.add(count + " " + tempname + " " + set + " " + num);
 						// Almost certainly an 'agnostic promo' if it falls through here, so try fetch again and replace vars if it succeeds
 						if (promo) if ((pkmncards = Jsoup.connect(cardDB + tempname.replaceAll("+PR", "") + "+" + "PROMO" + "+" + num).get()) != null)
 						{
@@ -290,17 +288,9 @@ public class TabletopParser implements Runnable
 				out.print("Whoops, I pressed the 'war crime' button, and the U.N. will soon convene to strongly condemn the following affront to humanity:: ");
 				n.printStackTrace();
 				out.println();
+				errorcards.add(temp2 + "+" + set + "+" + num);
 			}
 		}
-
-		Display.getDefault().syncExec(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				guiDeckList.setVisible(true);
-			}
-		});
 
 		// Once basic data parsed, get
 		Object json = null;																					// Blank Object instance needed to trick Jackson into behaving itself (and/or to make up for my own ignorance)
@@ -343,11 +333,28 @@ public class TabletopParser implements Runnable
 		}
 
 		// Confirm success and stop the progress bar.
-		Display.getDefault().syncExec(new Runnable()
+		Display.getDefault().asyncExec(new Runnable()
 		{
 			@Override
 			public void run()
 			{
+				if(!errorcards.isEmpty())
+				{
+					String[] errors = new String[errorcards.size()];
+					int i = 0;
+					for(String s : errorcards)
+					{
+						errors[i] = s;
+						i++;
+					}
+					guiDeckList.setItems(errors);
+				}
+				else
+				{
+					guiDeckList.setItems("");
+					guiDeckList.add("No errors found!");
+				}
+				guiDeckList.setVisible(true);
 				progressBar.setVisible(false);
 			}
 		});

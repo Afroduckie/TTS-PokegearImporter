@@ -342,7 +342,7 @@ public class PokegearWindow
 			// TabletopParser.setPath(txtAsdf.getText());
 			TabletopParser.resetDeck();
 			TabletopParser.setParseVars(decklist, defPath, name, true, progressBar, guiDeckList);
-			Display.getDefault().syncExec(parse);
+			Display.getDefault().asyncExec(parse);
 		} catch (Exception e)
 		{
 			out.println("Oopsie poopsie doopsie I did a fucky wucky, sorry about that! I committed the following war-crime:: " + e.toString());
