@@ -38,24 +38,17 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.internal.LinkedTreeMap;
 
 import andrielgaming.parsing.jsonroots.DeckDefaults;
+import andrielgaming.utils.LinkEnums;
 
 // Somewhat unnecessary but sanitycheck-level annotation in MOST classes to prevent invalid root fields
 @JsonIgnoreProperties(value =
 { "deckIDs", "deckids", "cardset", "customDeck", "nickname", "cardid", "cardId", "cardID" })
 public class TabletopParser implements Runnable
 {
-	// Card faces for the backs and basic energies since basic energies often fail automatic parsing
-	public static final String DEFAULTCARDBACK = "http://cloud-3.steamusercontent.com/ugc/998016607072061655/9BE66430CD3C340060773E321DDD5FD86C1F2703/";
-	public static final String ENERGYFIRE = "https://i0.wp.com/pkmncards.com/wp-content/uploads/en_US-SWSH8-284-fire_energy.jpg?fit=734%2C1024&ssl=1";
-	public static final String ENERGYGRASS = "https://i0.wp.com/pkmncards.com/wp-content/uploads/en_US-SWSH8-283-grass_energy.jpg?fit=734%2C1024&ssl=1";
-	public static final String ENERGYWATER = "https://i0.wp.com/pkmncards.com/wp-content/uploads/en_US-SWSH6-231-water_energy.jpg?fit=734%2C1024&ssl=1";
-	public static final String ENERGYPSYCHIC = "https://i0.wp.com/pkmncards.com/wp-content/uploads/en_US-SWSH6-232-psychic_energy.jpg?fit=734%2C1024&ssl=1";
-	public static final String ENERGYDARK = "https://i0.wp.com/pkmncards.com/wp-content/uploads/en_US-SWSH7-236-darkness_energy.jpg?fit=734%2C1024&ssl=1";
-	public static final String ENERGYFIGHTING = "https://i0.wp.com/pkmncards.com/wp-content/uploads/en_US-SWSH6-233-fighting_energy.jpg?fit=734%2C1024&ssl=1";
-	public static final String ENERGYFAIRY = "https://i0.wp.com/pkmncards.com/wp-content/uploads/en_US-SWSH_Energy-009-fairy_energy.jpg?fit=734%2C1024&ssl=1";
-	public static final String ENERGYELECTRIC = "https://i0.wp.com/pkmncards.com/wp-content/uploads/en_US-SWSH7-235-lightning_energy.jpg?fit=734%2C1024&ssl=1";
-	public static final String ENERGYSTEEL = "https://i0.wp.com/pkmncards.com/wp-content/uploads/en_US-SWSH7-237-metal_energy.jpg?fit=734%2C1024&ssl=1";
-
+	// Card faces and other hard-coded links moved to #LinkEnums
+	// User can change this in GUI as of version 1.4
+	public static String chosenCardBack = LinkEnums.DEFAULTCARDBACK;
+	
 	// Generalized URL for jSoup to fill in search terms with
 	private static final String cardDB = "https://pkmncards.com/?s=";
 
@@ -182,15 +175,15 @@ public class TabletopParser implements Runnable
 			// Check for energy card
 			if (flag.equals("E"))
 			{
-				if (name.equals("Fire")) 		faceurl = ENERGYFIRE;
-				if (name.equals("Grass")) 		faceurl = ENERGYGRASS;
-				if (name.equals("Water")) 		faceurl = ENERGYWATER;
-				if (name.equals("Darkness")) 	faceurl = ENERGYDARK;
-				if (name.equals("Fighting")) 	faceurl = ENERGYFIGHTING;
-				if (name.equals("Fairy")) 		faceurl = ENERGYFAIRY;
-				if (name.equals("Lightning")) 	faceurl = ENERGYELECTRIC;
-				if (name.equals("Metal")) 		faceurl = ENERGYSTEEL;
-				if (name.equals("Psychic"))		faceurl = ENERGYPSYCHIC;
+				if (name.equals("Fire")) 		faceurl = LinkEnums.ENERGYFIRE;
+				if (name.equals("Grass")) 		faceurl = LinkEnums.ENERGYGRASS;
+				if (name.equals("Water")) 		faceurl = LinkEnums.ENERGYWATER;
+				if (name.equals("Darkness")) 	faceurl = LinkEnums.ENERGYDARK;
+				if (name.equals("Fighting")) 	faceurl = LinkEnums.ENERGYFIGHTING;
+				if (name.equals("Fairy")) 		faceurl = LinkEnums.ENERGYFAIRY;
+				if (name.equals("Lightning")) 	faceurl = LinkEnums.ENERGYELECTRIC;
+				if (name.equals("Metal")) 		faceurl = LinkEnums.ENERGYSTEEL;
+				if (name.equals("Psychic"))		faceurl = LinkEnums.ENERGYPSYCHIC;
 				else
 				{
 					out.println("[WARN] Card flagged as energy but not caught, will run through normal parsing instead:: " + name + ", " + set + " " + num + " [Count : " + count + "]");
@@ -307,7 +300,7 @@ public class TabletopParser implements Runnable
 		{
 			@SuppressWarnings("unchecked")
 			ArrayList<String> vals = (ArrayList<String>) e.getValue();		// Uncheck deez nuts I wrote the damn program. More to the point, its impossible this list will be an incompatible type.
-			defs.insertSerialValues(("" + UUID.randomUUID()).substring(0, 6), vals.get(0), DEFAULTCARDBACK, vals.get(1), (int) e.getKey());
+			defs.insertSerialValues(("" + UUID.randomUUID()).substring(0, 6), vals.get(0), chosenCardBack, vals.get(1), (int) e.getKey());
 		}
 
 		// Set up the PrettyPrinter using an overridden DefaultPrettyPrinter that will auto-ignore line breaks and use normal breaks instead

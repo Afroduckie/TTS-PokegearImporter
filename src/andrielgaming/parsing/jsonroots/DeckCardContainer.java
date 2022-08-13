@@ -55,7 +55,7 @@ public class DeckCardContainer
 		this.CustomDeck = CustomDeck;
 		this.deckIDs = CardID;
 		this.CardID = CardID;
-		this.Transform = new DeckTransform(0, 0, 0, 0, 180, 180, 1.15f, 1.1f, 1.1f);
+		this.Transform = new DeckTransform(0, 0, 0, 0, 180, 180, 1.15f, 1.6f, 1.1f);
 		this.ColorDiffuse = new DeckColorDiffuse(0.7f, 0.7f, 0.7f);
 	}
 

@@ -1,16 +1,16 @@
 package andrielgaming.ui;
 
 import static java.lang.System.out;
-
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
-import java.io.IOException;
-
+import java.net.URL;
+import javax.swing.SwingWorker;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
@@ -18,23 +18,28 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.SWTResourceManager;
+import org.jsoup.nodes.Document;
 
 import andrielgaming.Pokegear;
 import andrielgaming.parsing.TabletopParser;
+import andrielgaming.utils.LinkEnums;
 
 public class PokegearWindow
 {
 	private static Thread parse;
+	private static LinkEnums linker = new LinkEnums();
 	protected Shell shlPokegearDeckImporter;
 	private Label lbl_helpTab;
 	private Text txtThisProgramWas;
@@ -42,6 +47,7 @@ public class PokegearWindow
 	private Text txtForTheDecks;
 	private Text txtAsdf;
 	private Text text;
+	private CLabel label_1;
 	private static ProgressBar progressBar;
 	public static List guiDeckList;
 	// protected Font fireRed = new Font(new GC(new Shell(new Display())).getDevice(), new FontData("/fonts/pokemon_fire_red"));
@@ -247,8 +253,74 @@ public class PokegearWindow
 		lblLocationOfYour.setText("Location of your TTS \"Saved Objects\" folder:");
 
 		txtAsdf = new Text(composite_2, SWT.BORDER);
+		txtAsdf.setFont(SWTResourceManager.getFont("Pokemon Fire Red", 12, SWT.NORMAL));
+		txtAsdf.setEditable(false);
 		txtAsdf.setText(Pokegear.getPath());
 		txtAsdf.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
+
+		CLabel lblCardSleeveback = new CLabel(composite_2, SWT.NONE);
+		lblCardSleeveback.setFont(SWTResourceManager.getFont("Pokemon Fire Red", 16, SWT.NORMAL));
+		lblCardSleeveback.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		lblCardSleeveback.setText("Card Sleeve (Back)");
+
+		CLabel lblImagePreview = new CLabel(composite_2, SWT.NONE);
+		lblImagePreview.setFont(SWTResourceManager.getFont("Pokemon Fire Red", 16, SWT.NORMAL));
+		lblImagePreview.setText("Image Preview");
+
+		List list = new List(composite_2, SWT.BORDER | SWT.V_SCROLL);
+		list.setItems(new String[]
+		{ "Default", "ArceusAnniversary", "Celebi", "Chespin1", "Chespin2", "Chespin3", "Darkrai", "DeoxysFullColor", "DruddigonClawMarks", "EeveeSilhouette", "EeveelutionsEspeon1", "EeveelutionsEspeon2", "EeveelutionsEspeon3", "EeveelutionsFlareon1", "EeveelutionsFlareon2", "EeveelutionsFlareon3", "EeveelutionsGlaceon1", "EeveelutionsGlaceon2", "EeveelutionsGlaceon3", "EeveelutionsJolteon1", "EeveelutionsJolteon2", "EeveelutionsJolteon3", "EeveelutionsLeafeon1", "EeveelutionsLeafeon2", "EeveelutionsLeafeon3", "EeveelutionsSylveon1", "EeveelutionsSylveon2", "EeveelutionsSylveon3", "EeveelutionsUmbreon1", "EeveelutionsUmbreon2", "EeveelutionsUmbreon3", "EeveelutionsVaporeon1", "EeveelutionsVaporeon2", "EeveelutionsVaporeon3", "EnergyDarkness", "EnergyDragon", "EnergyFairy", "EnergyFighting", "EnergyFire", "EnergyGrass", "EnergyLightning", "EnergyMetal", "EnergyPsychic", "EnergyWater", "Fennekin1", "Fennekin2", "Fennekin3", "Fennekin4", "Froakie1", "Froakie2", "Froakie3", "GarchompSilhouette", "GenesectSilhouette", "GengarHalloween", "GoldSleeve1Pikachu", "GoldSleeve2PikachuCoin", "GoldSleeve3PikachuAnniversary", "GoldSleeve4CharizardFullGold", "GoldSleeve5BlastoiseBlueTrim", "GoldSleeve6CharizardRedTrim", "GoldSleeve7VenusaurGreenTrim", "GoldSleeve8BlastoiseFullGold", "GoldSleeve9VenusaurFullGold", "GourgeistPokeball", "Halloween2014", "Jirachi", "Manaphy", "Mew", "MewtwoFullColor", "MegaGengarFullColor", "MegaCharizardX", "MegaCharizardY", "MegaBlastoise", "MegaVenusaur", "MegaMewtwoDuo", "MiloticGlassArt", "NewFriendsLeageFennekin", "Pax2014Blue", "ParallelLeagueChikorita", "PikachuSilhouette", "PokemonClub", "PyroarSilhouetteFlames", "RaichuSleeve", "Shaymin", "SteamLeagueYveltal", "TeamAqua", "TeamMagma", "ThunderousFullColor", "TrevenantStylizedSilhouette", "TrainerBoxGenerations", "TrainerBoxGroudon", "TrainerBoxGyarados", "TrainerBoxHoopa", "TrainerBoxKyogre", "TrainerBoxMegaAlakazam", "TrainerBoxMewtwoX", "TrainerBoxMewtwoY", "TrainerBoxRayquaza", "TrainerBoxVolcanion", "Worlds2013", "Worlds2014", "Worlds2015", "Worlds2015Alt", "Worlds2016", "VictiniFullArt", "VictiniWithTrim", "Xerneas1", "Xerneas2", "Xerneas3", "Yveltal1", "Yveltal2", "Yveltal3" });
+		list.setFont(SWTResourceManager.getFont("Pokemon Fire Red", 16, SWT.NORMAL));
+		list.setBackground(SWTResourceManager.getColor(100, 149, 237));
+		GridData gd_list = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 4);
+		gd_list.widthHint = 298;
+		gd_list.heightHint = 495;
+		list.setLayoutData(gd_list);
+		list.addListener(SWT.MouseDown, new Listener()
+		{
+			@Override
+			public void handleEvent(Event event)
+			{
+				String item = "";
+				int itemTop = 0;
+				for (int i = 0; i < list.getItemCount(); i++)
+				{
+					if (event.y >= itemTop && event.y <= itemTop + list.getItemHeight())
+					{
+						item = list.getItem(list.getTopIndex() + i);
+					}
+					itemTop += list.getItemHeight();
+				}
+
+				// Update the image preview after list item selected
+				System.out.println("List Item Clicked! " + item);
+				String imagePreviewURL = LinkEnums.Sleeves.get(item);
+				String imageLink = "";
+				Document document;
+				try
+				{
+					Image img = new Image(Display.getCurrent(), new URL(LinkEnums.Sleeves.get(item)).openStream());
+					img.setBackground(new Color(0, 0, 0));
+					img = new Image(Display.getCurrent(), img.getImageData().scaledTo(274, 374));
+					label_1.setImage(img);
+					TabletopParser.chosenCardBack = LinkEnums.Sleeves.get(item);
+				} catch (Exception E)
+				{
+					System.out.print("Error generating image preview- ");
+					E.printStackTrace();
+				}
+			}
+		});
+
+		label_1 = new CLabel(composite_2, SWT.NONE);
+		label_1.setImage(SWTResourceManager.getImage(PokegearWindow.class, "/images/ptcg_back.png"));
+		GridData gd_label_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_label_1.heightHint = 498;
+		label_1.setLayoutData(gd_label_1);
+		label_1.setText("");
+		new Label(composite_2, SWT.NONE);
+		new Label(composite_2, SWT.NONE);
+		new Label(composite_2, SWT.NONE);
 
 		TabItem tab_help = new TabItem(tabFolder, SWT.NONE);
 		tab_help.setToolTipText("How to use Pokegear and important information");
@@ -339,10 +411,23 @@ public class PokegearWindow
 		try
 		{
 			out.println("Pokegear will now attempt to parse this decklist! \n NOTE:: Please be patient! As a courtesy, there is a pre-programmed cushion to prevent the program from hugging the server to death.");
-			// TabletopParser.setPath(txtAsdf.getText());
+			// Replaced old directory setting with an automatic setter in the parser class
 			TabletopParser.resetDeck();
 			TabletopParser.setParseVars(decklist, defPath, name, true, progressBar, guiDeckList);
-			Display.getDefault().asyncExec(parse);
+			// Replaced asyncExec here with a SwingWorker- no more loda
+			SwingWorker parser = new SwingWorker()
+			{
+				@Override
+				protected String doInBackground() throws Exception
+				{
+					parse.start();
+
+					String res = "Finished Execution";
+					return res;
+				}
+			};
+
+			parser.execute();
 		} catch (Exception e)
 		{
 			out.println("Oopsie poopsie doopsie I did a fucky wucky, sorry about that! I committed the following war-crime:: " + e.toString());
