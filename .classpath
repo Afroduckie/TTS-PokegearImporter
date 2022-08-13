@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src">
+		<attributes>
+			<attribute name="ignore_optional_problems" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="resources">
+		<attributes>
+			<attribute name="ignore_optional_problems" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="swing2swt.jar">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-18">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/andre/Documents/EclipseExports/gson-2.9.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/andre/Documents/EclipseExports/swt.jar"/>
+	<classpathentry kind="lib" path="E:/Documents/JavaLibs/jackson-databind-2.13.3.jar"/>
+	<classpathentry kind="lib" path="E:/Documents/JavaLibs/jackson-core-2.13.3.jar"/>
+	<classpathentry kind="lib" path="E:/Documents/JavaLibs/jackson-core-2.12.7.jar"/>
+	<classpathentry kind="lib" path="E:/Documents/JavaLibs/jackson-annotations-2.13.3.jar"/>
+	<classpathentry kind="lib" path="E:/MCF_Eclipse/jsoup-1.15.2.jar"/>
+	<classpathentry kind="lib" path="E:/MCF_Eclipse/jsoup-1.15.2-javadoc.jar"/>
+	<classpathentry kind="lib" path="E:/MCF_Eclipse/jsoup-1.15.2-sources.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

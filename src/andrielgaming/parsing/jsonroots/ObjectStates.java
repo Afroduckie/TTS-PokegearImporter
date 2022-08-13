@@ -1,12 +1,17 @@
 package andrielgaming.parsing.jsonroots;
 
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.TreeMap;
+import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.internal.LinkedTreeMap;
 
 import andrielgaming.parsing.TabletopParser;
+
+// ObjectStates, like most of the container classes, is named that because I'm lazy and that's what the JSON root is named
 
 @JsonIgnoreProperties(value =
 { "deckIDs", "cardset", "customDeck", "nickname", "cardid", "cardId", "cardID" })
@@ -36,17 +41,17 @@ public class ObjectStates
 	public boolean Hands = false;
 	public boolean SidewaysCard = false;
 	@JsonProperty
-	public ArrayList<Integer> DeckIDs = new ArrayList<Integer>();
+	public ArrayList<Integer> DeckIDs = new ArrayList<>();
 	@JsonProperty
 	public TreeMap<String, LinkedTreeMap<String, Object>> CustomDeck = new TreeMap<String, LinkedTreeMap<String, Object>>();
 	public String LuaScript = "";
 	public String LuaScriptState = "";
 	public String XmlUI = "";
 	@JsonProperty
-	public ArrayList<DeckCardContainer> ContainedObjects = new ArrayList<DeckCardContainer>();
+	public ArrayList<DeckCardContainer> ContainedObjects = new ArrayList<>();
 	// Arraylist to help ensure a CustomDeck entry isn't entered more than once
-	private ArrayList<Integer> verifier = new ArrayList<Integer>();
-	private HashMap<Integer, DeckCardContainer> masterlist = new HashMap<Integer, DeckCardContainer>();
+	private ArrayList<Integer> verifier = new ArrayList<>();
+	private HashMap<Integer, DeckCardContainer> masterlist = new HashMap<>();
 	// new DeckCardContainer(GUID, Name, Transform, "", Description, ColorDiffuse, "", 0, 0, false, true, true, true, false, true, true, true, false, false, true, true, false, CustomDeck, "", "", "");
 
 	public ArrayList<Integer> getDeckIDs()
@@ -75,12 +80,12 @@ public class ObjectStates
 		int deckid = TabletopParser.instanceIDs.get(cardid);
 		DeckCardContainer temp1 = new DeckCardContainer(nick, deckid, temp1map);
 		System.out.println("Fetched card ID for CustomDeck field " + cardid + " with master ID " + TabletopParser.instanceIDs.get(cardid));
-		
+
 		// Genuinely have no fucking clue why changing this from 'cardid' to 'deckid / 100' made any damn difference as that SHOULD be what cardid fucking is.
 		// That said, everything breaks if you change these 2 lines. So don't do that.
 		CustomDeck.put("" + deckid / 100, temp);
 		verifier.add(deckid / 100);
-		
+
 		ContainedObjects.add(temp1);
 		masterlist.put(deckid, temp1);
 		System.out.println("[RESULTSET] Card URL Received :: " + furl + "\n");

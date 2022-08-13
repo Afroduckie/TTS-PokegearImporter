@@ -2,7 +2,6 @@ package andrielgaming.parsing;
 
 import static java.lang.System.out;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,12 +14,18 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import org.jsoup.Connection.Response;
+import javax.swing.JFileChooser;
+
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.ProgressBar;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.exc.StreamWriteException;
@@ -37,7 +42,7 @@ import andrielgaming.parsing.jsonroots.DeckDefaults;
 // Somewhat unnecessary but sanitycheck-level annotation in MOST classes to prevent invalid root fields
 @JsonIgnoreProperties(value =
 { "deckIDs", "deckids", "cardset", "customDeck", "nickname", "cardid", "cardId", "cardID" })
-public class TabletopParser
+public class TabletopParser implements Runnable
 {
 	// Card faces for the backs and basic energies since basic energies often fail automatic parsing
 	public static final String DEFAULTCARDBACK = "http://cloud-3.steamusercontent.com/ugc/998016607072061655/9BE66430CD3C340060773E321DDD5FD86C1F2703/";
@@ -61,59 +66,137 @@ public class TabletopParser
 	private static ArrayList<String> errorcards;
 
 	// Collections needed for building the deck
-	private static ArrayList<String[]> decklist = new ArrayList<String[]>();														// ArrayList containing string arrays with each line of input from decklist
+	private static ArrayList<String[]> decklist = new ArrayList<>();														// ArrayList containing string arrays with each line of input from decklist
+	private static ArrayList<String> cardlist = new ArrayList<>();
 	public static LinkedTreeMap<Integer, Integer> instanceIDs = new LinkedTreeMap<Integer, Integer>();								// Key is the UNIQUE ID, value is the CARD ID
 	public static LinkedTreeMap<Integer, ArrayList<String>> instanceURLs = new LinkedTreeMap<Integer, ArrayList<String>>();
 
 	// Map for reverse lookup of IDs by nickname
-	private static TreeMap<String, String> pokedex = new TreeMap<String, String>();
+	private static TreeMap<String, String> pokedex = new TreeMap<>();
 	// String for regex processing illegal characters
 	private static String[] illegalRegex =
 	{ "�", "{.}", "é", "^", "[�{*}é]" };
 	private static String[] replacements =
 	{ "e", "", "e", "" };
 
+	private static String filePath = new JFileChooser().getFileSystemView().getDefaultDirectory().toString() + "\\My Games\\Tabletop Simulator\\Saves\\Saved Objects\\";
+	private static String deckName;
+	private static ProgressBar progressBar;
+	public static List guiDeckList;
+	public int index;
+
 	@SuppressWarnings("rawtypes")
-	public static boolean doParse(File f, String filePath, String deckName, boolean showDebugLogs) throws StreamWriteException, DatabindException, IOException, InterruptedException
+	public static void setParseVars(String f, String fpath, String name, boolean showDebugLogs, ProgressBar p, List decklistGUI) throws StreamWriteException, DatabindException, IOException, InterruptedException
 	{
 		// Send the file off to the formatter to pretty it up
-
 		// NOTE:: Changed from 'File f' to 'String f' for decoupling, issues may crop up
 		parseInputFile(f);
+		filePath = new JFileChooser().getFileSystemView().getDefaultDirectory().toString() + "\\My Games\\Tabletop Simulator\\Saves\\Saved Objects\\";
+		deckName = name;
+		progressBar = p;
+		guiDeckList = decklistGUI;
 		out.println("Input file has been processed, starting the parsing step!");
 
 		// Set a few important variables before starting
-		errorcards = new ArrayList<String>();									// Arraylist containing any cards that failed to parse so user can be notified
+		errorcards = new ArrayList<>();									// Arraylist containing any cards that failed to parse so user can be notified
 		mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);	// Create the mapper and enable that stupid indenter I didn't know I needed
 		mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);				// Workaround to trick Jackson into serializing an empty object
-		String faceurl = "";
+	}
+
+	public static void setPath(String path)
+	{
+		filePath = path;
+	}
+
+	public int getIndex()
+	{
+		return index;
+	}
+
+	// Basically just sets all variables back to null
+	public static void resetDeck()
+	{
+		cardset = new TreeMap<>();
+		mapper = null;
+		writ = null;
+		errorcards = null;
+		decklist = new ArrayList<>();														// ArrayList containing string arrays with each line of input from decklist
+		cardlist = new ArrayList<>();
+		instanceIDs = new LinkedTreeMap<Integer, Integer>();								// Key is the UNIQUE ID, value is the CARD ID
+		instanceURLs = new LinkedTreeMap<Integer, ArrayList<String>>();
+		pokedex = new TreeMap<>();
+		filePath = null;
+		deckName = null;
+		progressBar = null;
+		guiDeckList = null;
+	}
+
+	// Parsing functionality moved into a runnable, executed from GUI class
+	@Override
+	public void run()
+	{
+		index = 0;
+		// Display var for sending data to GUI
+		Display d = Display.getDefault();
+
+		// String faceurl = "";
 		int cardindex = 1;
 		boolean thumb = false;
-		
+		// Send the decklist to the GUI container for display
+		Display.getDefault().asyncExec(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				guiDeckList.setItems(new String[0]);
+				progressBar.setMaximum(decklist.size());
+				progressBar.setSelection(0);
+				progressBar.setVisible(true);
+			}
+		});
+
 		for (String[] query : decklist)
 		{
-			faceurl = "";
+			String faceurl = "";
 			String flag = query[0];
 			String count = query[1];
 			String name = query[2];
 			String set = query[3];
 			String num = query[4];
 
+			// Send a tick to the progress bar
+			ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+			scheduler.schedule(() ->
+			{
+    			Display.getDefault().asyncExec(new Runnable()
+    			{
+    				@Override
+    				public void run()
+    				{
+    					progressBar.setSelection(index += 1);
+    				}
+    			});
+			}, 2000, TimeUnit.MILLISECONDS);
+			
+			boolean specialEnergyFlag = false;
+
 			// Check for energy card
 			if (flag.equals("E"))
 			{
-				if (name.contains("Fire")) faceurl = ENERGYFIRE;
-				if (name.contains("Grass")) faceurl = ENERGYWATER;
-				if (name.contains("Water")) faceurl = ENERGYFIRE;
-				if (name.contains("Darkness")) faceurl = ENERGYDARK;
-				if (name.contains("Fighting")) faceurl = ENERGYFIGHTING;
-				if (name.contains("Fairy")) faceurl = ENERGYFAIRY;
-				if (name.contains("Lightning")) faceurl = ENERGYELECTRIC;
-				if (name.contains("Metal")) faceurl = ENERGYSTEEL;
-				if (name.contains("Psychic"))
-					faceurl = ENERGYPSYCHIC;
+				if (name.equals("Fire")) 		faceurl = ENERGYFIRE;
+				if (name.equals("Grass")) 		faceurl = ENERGYGRASS;
+				if (name.equals("Water")) 		faceurl = ENERGYWATER;
+				if (name.equals("Darkness")) 	faceurl = ENERGYDARK;
+				if (name.equals("Fighting")) 	faceurl = ENERGYFIGHTING;
+				if (name.equals("Fairy")) 		faceurl = ENERGYFAIRY;
+				if (name.equals("Lightning")) 	faceurl = ENERGYELECTRIC;
+				if (name.equals("Metal")) 		faceurl = ENERGYSTEEL;
+				if (name.equals("Psychic"))		faceurl = ENERGYPSYCHIC;
 				else
+				{
 					out.println("[WARN] Card flagged as energy but not caught, will run through normal parsing instead:: " + name + ", " + set + " " + num + " [Count : " + count + "]");
+					specialEnergyFlag = true;
+				}
 			}
 
 			// Download HTML of database website and search for the card's image by the CSS tag 'a' under 'abs:href' in source code. Skip if energy card was handled manually.
@@ -137,28 +220,29 @@ public class TabletopParser
 					Document pkmncards = null;
 					try
 					{
-						pkmncards = Jsoup.connect(cardDB + tempname + "+" + set + "+" + num).get();
-					} 
-					catch (Exception e)
+						// NOTE:: Switched the logic to use only set and setnum, should help with some edge-case failures
+						if (!specialEnergyFlag)
+							pkmncards = Jsoup.connect(cardDB + tempname + "+" + set + "+" + num).get();
+						else
+							pkmncards = Jsoup.connect(cardDB + set + "+" + num).get();
+					} catch (Exception e)
 					{
+						guiDeckList.add(count + " " + tempname + " " + set + " " + num);
 						// Almost certainly an 'agnostic promo' if it falls through here, so try fetch again and replace vars if it succeeds
-						if (promo)
+						if (promo) if ((pkmncards = Jsoup.connect(cardDB + tempname.replaceAll("+PR", "") + "+" + "PROMO" + "+" + num).get()) != null)
 						{
-							if ((pkmncards = Jsoup.connect(cardDB + tempname.replaceAll("+PR", "") + "+" + "PROMO" + "+" + num).get()) != null)
-							{
-								tempname = tempname.replaceAll("+PR", "");
-								set = "PROMO";
-							}
+							tempname = tempname.replaceAll("+PR", "");
+							set = "PROMO";
 						}
 					}
 
 					// TODO -- Replace with a less jank fucking rate throttle because you want to believe you're better than this
-					Thread.sleep(200);
+
 					out.println("Polling " + cardDB + tempname + "+" + set + "+" + num);
 
 					// Yeet the card URL from the CSS field header 'a' by fieldname 'href' to get the card's specific source image link
 					faceurl = pkmncards.select("a.card-image-link").first().attr("abs:href");
-								
+
 					// Loop to search for lowest level subpage for any card with multiple results. Shouldn't ever loop more than once but serves as a good sanitycheck this way
 					if (faceurl.contains("https://pkmncards.com/card/")) out.println("Multiple versions of this card found, please wait!");
 					while (faceurl.contains("https://pkmncards.com/card/"))
@@ -166,30 +250,24 @@ public class TabletopParser
 						pkmncards = Jsoup.connect(faceurl).get();
 						faceurl = pkmncards.select("a.card-image-link").first().attr("abs:href");
 					}
-					
+
 					// Set thumbnail if not set already
-					if (!thumb)
-					{
-						// In a nutshell- rip the image, decode it, re-encode it, save to disk
+					if (!thumb) // In a nutshell- rip the image, decode it, re-encode it, save to disk
 						try
-						{
-							URL urlImage = new URL(faceurl);
-							InputStream in = urlImage.openStream();
-							byte[] buffer = new byte[4096];
-							int n = -1;
-							OutputStream os = new FileOutputStream(filePath + "\\" + deckName + ".png");
-							while ((n = in.read(buffer)) != -1)
-							{
-								os.write(buffer, 0, n);
-							}
-							os.close();
-							out.println("Image saved to disk as thumbnail.");
-							thumb = true;
-						} 
-						catch (IOException e)
-						{
-							e.printStackTrace();
-						}
+					{
+						URL urlImage = new URL(faceurl);
+						InputStream in = urlImage.openStream();
+						byte[] buffer = new byte[4096];
+						int n = -1;
+						OutputStream os = new FileOutputStream(filePath + "\\" + deckName + ".png");
+						while ((n = in.read(buffer)) != -1)
+							os.write(buffer, 0, n);
+						os.close();
+						out.println("Image saved to disk as thumbnail.");
+						thumb = true;
+					} catch (IOException e)
+					{
+						e.printStackTrace();
 					}
 				}
 
@@ -198,16 +276,16 @@ public class TabletopParser
 				for (int i = 1; i <= Integer.parseInt(count); i++)
 				{
 					// Loop through deck to assign deck & card IDs for all parsed cards
-					int instID = id + (i * 10);
+					int instID = id + i * 10;
 					instanceIDs.put(instID, id);
-					ArrayList<String> temp = new ArrayList<String>();
+					ArrayList<String> temp = new ArrayList<>();
 					temp.add(faceurl);
 					temp.add(name);
 					instanceURLs.put(instID, temp);
 				}
 				// Increment cardindex by number of this card present in deck
 				cardindex += Integer.parseInt(count);
-			} catch (NullPointerException n)
+			} catch (Exception n)
 			{
 				out.print("Whoops, I pressed the 'war crime' button, and the U.N. will soon convene to strongly condemn the following affront to humanity:: ");
 				n.printStackTrace();
@@ -215,16 +293,23 @@ public class TabletopParser
 			}
 		}
 
+		Display.getDefault().syncExec(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				guiDeckList.setVisible(true);
+			}
+		});
+
 		// Once basic data parsed, get
 		Object json = null;																					// Blank Object instance needed to trick Jackson into behaving itself (and/or to make up for my own ignorance)
-		ArrayList<Integer> deckids = new ArrayList<Integer>();												// Arraylist of "deck IDs" for serialization to the final JSON file
+		ArrayList<Integer> deckids = new ArrayList<>();												// Arraylist of "deck IDs" for serialization to the final JSON file
 		DeckDefaults defs = new DeckDefaults(deckids, cardset);												// Container class that serves as a 'template' for the JSON format TTS uses for Custom Deck objects
 
 		// Pass all of our generated IDs to the container classes
 		for (Entry e : instanceIDs.entrySet())
-		{
 			deckids.add((int) e.getValue());
-		}
 		defs.setDeckIDs(deckids);
 
 		// Write the info for each distinct card, including a random GUID that for some reason still works in TTS
@@ -245,10 +330,27 @@ public class TabletopParser
 
 		// Serialize DeckDefaults and write it to our JSON file
 		String jsondefaults = "";
-		jsondefaults = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(defs);
-		json = mapper.readValue(jsondefaults, Object.class);
-		writ.writeValue(Paths.get(filePath + "\\" + deckName + ".json").toFile(), json);
-		return true;
+		try
+		{
+			jsondefaults = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(defs);
+			json = mapper.readValue(jsondefaults, Object.class);
+			writ.writeValue(Paths.get(filePath + "\\" + deckName + ".json").toFile(), json);
+			jsondefaults = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(defs);
+		} catch (Exception e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		// Confirm success and stop the progress bar.
+		Display.getDefault().syncExec(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				progressBar.setVisible(false);
+			}
+		});
 	}
 
 	public static void addCard(int uid, String FaceURL, String BackURL)
@@ -264,25 +366,50 @@ public class TabletopParser
 		cardset.put("" + uid, temp);
 	}
 
-	public static void parseInputFile(File f) throws FileNotFoundException
+	public static void parseInputFile(String f) throws FileNotFoundException
 	{
 		Scanner file = new Scanner(f);
 		while (file.hasNext())
 		{
 			String line = file.nextLine().trim();
-
+			String white = "" /* dummy empty string for homogeneity */
+					+ "\\u0009" // CHARACTER TABULATION
+					+ "\\u000A" // LINE FEED (LF)
+					+ "\\u000B" // LINE TABULATION
+					+ "\\u000C" // FORM FEED (FF)
+					+ "\\u000D" // CARRIAGE RETURN (CR)
+					+ "\\u0020" // SPACE
+					+ "\\u0085" // NEXT LINE (NEL)
+					+ "\\u00A0" // NO-BREAK SPACE
+					+ "\\u1680" // OGHAM SPACE MARK
+					+ "\\u180E" // MONGOLIAN VOWEL SEPARATOR
+					+ "\\u2000" // EN QUAD
+					+ "\\u2001" // EM QUAD
+					+ "\\u2002" // EN SPACE
+					+ "\\u2003" // EM SPACE
+					+ "\\u2004" // THREE-PER-EM SPACE
+					+ "\\u2005" // FOUR-PER-EM SPACE
+					+ "\\u2006" // SIX-PER-EM SPACE
+					+ "\\u2007" // FIGURE SPACE
+					+ "\\u2008" // PUNCTUATION SPACE
+					+ "\\u2009" // THIN SPACE
+					+ "\\u200A" // HAIR SPACE
+					+ "\\u2028" // LINE SEPARATOR
+					+ "\\u2029" // PARAGRAPH SEPARATOR
+					+ "\\u202F" // NARROW NO-BREAK SPACE
+					+ "\\u205F" // MEDIUM MATHEMATICAL SPACE
+					+ "\\u3000" // IDEOGRAPHIC SPACE
+			;
 			// Check for lines to skip
-			if (line.length() <= 3) continue;
-			if (!(line.charAt(0) + "").matches("[0-9]") && !(line.substring(0, 2).equals("* "))) continue;
+			if ((line.length() <= 3) || (!(line.charAt(0) + "").matches("[0-9]") && !line.substring(0, 2).equals("* "))) continue;
 
-			// Replace ampersand in Tag Team cards with just 'and'
 			line = line.replaceAll("&", "%26");
-			// FIXME:: Potentially terrible workaround for agnostic promos
 			line = line.replaceAll("PR-BLW", "PR+BWP");
-			line = line.replaceAll("PR-", " PR+");// NOTE:: Added promo check back to webcrawler
-			// Hopefully un-fucks the SWSH elemental special energies since some genius at The Pokemon Company wanted to put fire emojis in names
+			line = line.replaceAll("PR-", " PR+");
 			line = line.replaceAll("\\{.\\}", "");
 			line = line.replaceAll("\\* ", "");
+			line = line.replaceAll("é", "e");
+			line = line.replaceAll("[^a-zA-Z0-9%&-{\\s+}]", ""); 	// FIXME:: This SHOULD remove any non-compliant characters, test with the Vikavolt V list with the Prism Star Tapu Koko in it
 
 			// Report to console
 			out.println("Input string processed:: " + line);
@@ -295,13 +422,9 @@ public class TabletopParser
 			if (firstpass.length <= 3) continue;
 
 			for (int i = 0; i < firstpass.length; i++)
-			{
 				firstpass[i] = firstpass[i].trim();
-			}
 			for (int i = 0; i < 5; i++)
-			{
 				secondpass[i] = "";
-			}
 
 			// Check for the word 'energy' and set the energy flags of matches to 'E' for special checks later on
 			if (line.toUpperCase().contains("ENERGY"))
@@ -326,15 +449,14 @@ public class TabletopParser
 				secondpass[2] = reformat.trim();
 			}
 			else
-			{
 				for (int i = 0; i < firstpass.length; i++)
 					secondpass[i + 1] = firstpass[i];
-			}
 			out.println("[[DEBUG]] Contents of SECONDPASS array:: ");
 			for (String s : secondpass)
 				out.println(s);
 			out.println("------");
 			decklist.add(secondpass);
+			cardlist.add(secondpass[1].replaceAll("%26", "&") + " " + secondpass[2] + " " + secondpass[3]);
 		}
 		file.close();
 	}

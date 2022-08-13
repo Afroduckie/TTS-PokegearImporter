@@ -1,29 +1,35 @@
 package andrielgaming;
 
-import static java.lang.System.out;
-import java.io.File;
 import java.util.Scanner;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import andrielgaming.parsing.TabletopParser;
 
-/* FUNCTIONALITY:: Core routines all seem to work properly
- * 
- */
+import javax.swing.JFileChooser;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+/*	Unused in most recent build. Left in as artifact from CLI build.
+ * 	This is a second Main() class so comment out the main in PokegearWindow if you want to run as CLI
+ * 	But dont do that, SWT is terrible and I spent a lotta time making it pretty
+ * */
 @JsonIgnoreProperties(value =
 { "deckIDs", "cardset", "customDeck", "nickname", "cardid", "cardId", "cardID" })
 public class Pokegear
 {
 	// Default file path with system user injected, usually works
 	private static String usr = System.getProperty("user.name");
-	private static String defPath = "C:\\Users\\" + usr + "\\Documents\\My Games\\Tabletop Simulator\\Saves\\Saved Objects\\"; // Prompt for different filepath &
+	private static String defPath = new JFileChooser().getFileSystemView().getDefaultDirectory().toString() + "\\My Games\\Tabletop Simulator\\Saves\\Saved Objects\\"; // Prompt for different filepath &
 	private static Scanner s = new Scanner(System.in);
 
-	public static void main(String[] args)
+	public static String getPath()
+	{
+		return defPath;
+	}
+
+	/*public static void main(String[] args)
 	{
 		// OS detection removed from this version- to be reimplemented in GUI class
 		out.println("Welcome to PokeGear CLI Client!\nTo help the future transition to a full GUI, all input has changed into single-character inputs.\nPlease only enter the whole number matching what you want to do or we cannot double-check it before running. ");
 		File dirs = new File(defPath);
-
+	
 		// Simplified filepath checking
 		if (dirs.exists())
 		{
@@ -37,9 +43,10 @@ public class Pokegear
 			String correction = s.nextLine().trim();
 			dirs = new File(correction);
 		}
-	}
+	}*/
 
 	// Method to start the parsing process
+	/*
 	public static void startDeckImport()
 	{
 		// out.println("\rWould you like to import a deck? {Y/N} ");
@@ -53,7 +60,7 @@ public class Pokegear
 			// First loop iteration includes JSON file setup.
 			out.println("\rPlease enter a name for this deck:: ");
 			String name = s.nextLine().trim();
-			
+
 			out.println("Paste your deck list into this text file, save it, and close it.");
 			try
 			{
@@ -63,7 +70,7 @@ public class Pokegear
 				java.awt.Desktop.getDesktop().edit(temp);
 				out.println("Once you are done, click into this window and hit ENTER to continue...");
 				System.in.read();
-				
+
 				out.print("\rVerifying file was saved...");
 				if (temp.exists())
 					out.println("\rVerified that file exists on drive!");
@@ -73,8 +80,8 @@ public class Pokegear
 					System.exit(1);
 				}
 				
-
-				/*String temp = "";
+	
+				String temp = "";
 				if (temp.length() <= 1)
 				{
 					out.println("Paste your deck list into this window and hit <ENTER>...");
@@ -83,11 +90,11 @@ public class Pokegear
 					{
 						temp = s.nextLine().trim() + "\n";
 					}
-				}*/
-
+				}
+	
 				out.println("Pokegear will now attempt to parse this decklist! \n NOTE:: Please be patient! As a courtesy, there is a pre-programmed cushion to prevent the program from hugging the server to death.");
-				boolean success = TabletopParser.doParse(temp, defPath, name, true);
-
+				//boolean success = TabletopParser.doParse(temp, defPath, name, true);
+	
 				if (success)
 				{
 					// TODO - Add option to parse another deck
@@ -103,7 +110,7 @@ public class Pokegear
 				out.println("Oopsie poopsie doopsie I did a fucky wucky, sorry about that! I committed the following war-crime:: " + e.toString());
 				e.printStackTrace();
 				System.exit(1);
-
+	
 				out.println("Thanks for using Pokegear!");
 				System.exit(0);
 			}
@@ -113,5 +120,5 @@ public class Pokegear
 			out.println("Well... fine then!");
 			System.exit(0);
 		}
-	}
+	}*/
 }

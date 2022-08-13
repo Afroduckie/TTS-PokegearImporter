@@ -6,15 +6,17 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.internal.LinkedTreeMap;
+
 import andrielgaming.parsing.TabletopParser;
 
-@JsonIgnoreProperties(value = { "deckIDs", "cardset", "customDeck","nickname","cardid","cardId","cardID","isChild" })
+@JsonIgnoreProperties(value =
+{ "deckIDs", "cardset", "customDeck", "nickname", "cardid", "cardId", "cardID", "isChild" })
 public class DeckCardContainer
 {
 	// Essentially contains the same fields as ObjectStates but only holds a single card in its CustomDeck
 	// Needs to be a separate container class so I can add logic to prevent the size of CustomDeck from going over 1
-	//	Crucial difference in fields is DeckIDs being replaced with CardID- an int value correlating to the GUID of the card in the DeckIDs arraylist of ObjectStates
-	public String GUID = (""+UUID.randomUUID()).substring(0,6);
+	// Crucial difference in fields is DeckIDs being replaced with CardID- an int value correlating to the GUID of the card in the DeckIDs arraylist of ObjectStates
+	public String GUID = ("" + UUID.randomUUID()).substring(0, 6);
 	public String Name = "Card";
 	public DeckTransform Transform;
 	public String Nickname;
@@ -44,11 +46,11 @@ public class DeckCardContainer
 	public String XmlUI = "";
 	public int deckIDs;
 	private boolean isChild = false;
-	
+
 	public DeckCardContainer(String Nickname, int CardID, TreeMap<Integer, LinkedTreeMap<String, Object>> CustomDeck)
 	{
 		super();
-		this.GUID = (""+UUID.randomUUID()).substring(0,6);
+		this.GUID = ("" + UUID.randomUUID()).substring(0, 6);
 		this.Nickname = Nickname;
 		this.CustomDeck = CustomDeck;
 		this.deckIDs = CardID;
@@ -61,16 +63,24 @@ public class DeckCardContainer
 	{
 		isChild = true;
 	}
-	
+
 	public String getNickname()
-	{ return this.Nickname; }
+	{
+		return this.Nickname;
+	}
 
 	public int getCardID()
-	{ return this.CardID; }
+	{
+		return this.CardID;
+	}
 
 	public void setNickname(String Nickname)
-	{ this.Nickname = Nickname; }
+	{
+		this.Nickname = Nickname;
+	}
 
 	public void setCardID(int deckid)
-	{ this.CardID = TabletopParser.instanceIDs.get(deckid); }
+	{
+		this.CardID = TabletopParser.instanceIDs.get(deckid);
+	}
 }

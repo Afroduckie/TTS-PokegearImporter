@@ -3,7 +3,6 @@ package andrielgaming.parsing;
 import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
@@ -17,7 +16,7 @@ public class DeckObjectSerializer extends StdSerializer<ObjectStates>
 	{
 		this(null);
 	}
-	
+
 	public DeckObjectSerializer(Class<ObjectStates> d)
 	{
 		super(d);
@@ -33,5 +32,5 @@ public class DeckObjectSerializer extends StdSerializer<ObjectStates>
 		gen.writeStringField("Name", value.Name);
 		gen.writeEndObject();
 	}
-	
+
 }
