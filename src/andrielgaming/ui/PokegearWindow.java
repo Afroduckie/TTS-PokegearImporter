@@ -1,21 +1,29 @@
 package andrielgaming.ui;
 
 import static java.lang.System.out;
+
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.net.URL;
+
 import javax.swing.SwingWorker;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -48,6 +56,7 @@ public class PokegearWindow
 	private Text txtAsdf;
 	private Text text;
 	private CLabel label_1;
+	private Image animatedPikachu;
 	private static ProgressBar progressBar;
 	public static List guiDeckList;
 	// protected Font fireRed = new Font(new GC(new Shell(new Display())).getDevice(), new FontData("/fonts/pokemon_fire_red"));
@@ -87,6 +96,7 @@ public class PokegearWindow
 	protected void createContents()
 	{
 		shlPokegearDeckImporter = new Shell();
+		animatedPikachu = SWTResourceManager.getImage(PokegearWindow.class, "/images/dancingpikachu_resized.gif");
 		shlPokegearDeckImporter.setMaximized(true);
 		shlPokegearDeckImporter.setBackgroundImage(SWTResourceManager.getImage(PokegearWindow.class, "/images/background.jpg"));
 		shlPokegearDeckImporter.setFont(SWTResourceManager.getFont("Pokemon Fire Red", 16, SWT.NORMAL));
@@ -102,7 +112,7 @@ public class PokegearWindow
 		shlPokegearDeckImporter.setLayout(gl_shlPokegearDeckImporter);
 
 		CLabel lblNewLabel = new CLabel(shlPokegearDeckImporter, SWT.NONE);
-		lblNewLabel.setImage(SWTResourceManager.getImage(PokegearWindow.class, "/images/dancingpikachu_resized.gif"));
+		lblNewLabel.setImage(animatedPikachu);
 		lblNewLabel.setFont(SWTResourceManager.getFont("Pokemon Fire Red", 30, SWT.BOLD));
 		lblNewLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 		lblNewLabel.setText("  Pokegear Deck Importer for Tabletop Simulator   ");
@@ -232,6 +242,8 @@ public class PokegearWindow
 				String name = text.getText();
 
 				// Send info over to the parser
+				animatedPikachu = SWTResourceManager.getImage(PokegearWindow.class, "/images/dancingpikachu_resized.gif");
+				ImageData pika = animatedPikachu.getImageData();
 				forwardToParser(name, defPath, decklist);
 			}
 		});
@@ -402,6 +414,23 @@ public class PokegearWindow
 		lbl_helpTab.setImage(image);
 	}
 
+	private void animatePikachu()
+	{
+		ImageLoader loader = new ImageLoader();
+		loader.load(getClass().getResourceAsStream("Idea_SWT_Animation.gif"));
+		Canvas canvas = new Canvas(shlPokegearDeckImporter, SWT.NONE);
+		animatedPikachu = new Image(Display.getCurrent(), loader.data[0]);
+		int imageNumber;
+		final GC gc = new GC(animatedPikachu);
+		canvas.addPaintListener(new PaintListener()
+		{
+			public void paintControl(PaintEvent event)
+			{
+				event.gc.drawImage(animatedPikachu, 0, 0);
+			}
+		});
+	}
+
 	// Send data from text and name fields to parser class for processing
 	private void forwardToParser(String name, String defPath, String decklist)
 	{
@@ -423,6 +452,7 @@ public class PokegearWindow
 					parse.start();
 
 					String res = "Finished Execution";
+					animatedPikachu = SWTResourceManager.getImage(PokegearWindow.class, "/images/dancingpikachu_resized.gif");
 					return res;
 				}
 			};
