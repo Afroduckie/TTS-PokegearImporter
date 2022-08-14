@@ -48,7 +48,7 @@ public class TabletopParser implements Runnable
 	// Card faces and other hard-coded links moved to #LinkEnums
 	// User can change this in GUI as of version 1.4
 	public static String chosenCardBack = LinkEnums.DEFAULTCARDBACK;
-	
+
 	// Generalized URL for jSoup to fill in search terms with
 	private static final String cardDB = "https://pkmncards.com/?s=";
 
@@ -160,34 +160,28 @@ public class TabletopParser implements Runnable
 			ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 			scheduler.schedule(() ->
 			{
-    			Display.getDefault().asyncExec(new Runnable()
-    			{
-    				@Override
-    				public void run()
-    				{
-    					progressBar.setSelection(index += 1);
-    				}
-    			});
+				Display.getDefault().asyncExec(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						progressBar.setSelection(index += 1);
+					}
+				});
 			}, 2000, TimeUnit.MILLISECONDS);
-			
+
+			out.println("Imported card name: " + name + ", " + flag + ", " + count + "x, " + set + " ");
 			boolean specialEnergyFlag = false;
 
-			// Check for energy card
-			if (flag.equals("E"))
+			// Check for energy card, excluding any cards like 'Energy Loto' that have 'Energy' as the first name
+			if (flag.equals("E") && !name.split(" ")[0].equals("Energy"))
 			{
-				if (name.equals("Fire")) 		faceurl = LinkEnums.ENERGYFIRE;
-				if (name.equals("Grass")) 		faceurl = LinkEnums.ENERGYGRASS;
-				if (name.equals("Water")) 		faceurl = LinkEnums.ENERGYWATER;
-				if (name.equals("Darkness")) 	faceurl = LinkEnums.ENERGYDARK;
-				if (name.equals("Fighting")) 	faceurl = LinkEnums.ENERGYFIGHTING;
-				if (name.equals("Fairy")) 		faceurl = LinkEnums.ENERGYFAIRY;
-				if (name.equals("Lightning")) 	faceurl = LinkEnums.ENERGYELECTRIC;
-				if (name.equals("Metal")) 		faceurl = LinkEnums.ENERGYSTEEL;
-				if (name.equals("Psychic"))		faceurl = LinkEnums.ENERGYPSYCHIC;
-				else
+				faceurl = TabletopParser.getBasicEnergy(name);
+				if (faceurl.equals("!"))
 				{
 					out.println("[WARN] Card flagged as energy but not caught, will run through normal parsing instead:: " + name + ", " + set + " " + num + " [Count : " + count + "]");
 					specialEnergyFlag = true;
+					faceurl = "";
 				}
 			}
 
@@ -215,7 +209,7 @@ public class TabletopParser implements Runnable
 						// NOTE:: Switched the logic to use only set and setnum, should help with some edge-case failures
 						if (!specialEnergyFlag)
 							pkmncards = Jsoup.connect(cardDB + tempname + "+" + set + "+" + num).get();
-						else
+						else if (specialEnergyFlag)
 							pkmncards = Jsoup.connect(cardDB + set + "+" + num).get();
 					} catch (Exception e)
 					{
@@ -227,11 +221,7 @@ public class TabletopParser implements Runnable
 						}
 					}
 
-					// TODO -- Replace with a less jank fucking rate throttle because you want to believe you're better than this
-
 					out.println("Polling " + cardDB + tempname + "+" + set + "+" + num);
-
-					// Yeet the card URL from the CSS field header 'a' by fieldname 'href' to get the card's specific source image link
 					faceurl = pkmncards.select("a.card-image-link").first().attr("abs:href");
 
 					// Loop to search for lowest level subpage for any card with multiple results. Shouldn't ever loop more than once but serves as a good sanitycheck this way
@@ -331,11 +321,11 @@ public class TabletopParser implements Runnable
 			@Override
 			public void run()
 			{
-				if(!errorcards.isEmpty())
+				if (!errorcards.isEmpty())
 				{
 					String[] errors = new String[errorcards.size()];
 					int i = 0;
-					for(String s : errorcards)
+					for (String s : errorcards)
 					{
 						errors[i] = s;
 						i++;
@@ -469,5 +459,25 @@ public class TabletopParser implements Runnable
 	public static String fetchCardID(String name)
 	{
 		return pokedex.get(name);
+	}
+
+	public static String getBasicEnergy(String sname)
+	{
+		String faceurl = "!";
+		String name = sname.replaceAll("  ", " ");
+		
+		out.println("Processing potential Basic Energy card with input string " + name);
+
+		if (name.equals("Fire Energy")) faceurl = LinkEnums.ENERGYFIRE;
+		if (name.equals("Grass Energy")) faceurl = LinkEnums.ENERGYGRASS;
+		if (name.equals("Water Energy")) faceurl = LinkEnums.ENERGYWATER;
+		if (name.equals("Darkness Energy")) faceurl = LinkEnums.ENERGYDARK;
+		if (name.equals("Fighting Energy")) faceurl = LinkEnums.ENERGYFIGHTING;
+		if (name.equals("Fairy Energy")) faceurl = LinkEnums.ENERGYFAIRY;
+		if (name.equals("Lightning Energy")) faceurl = LinkEnums.ENERGYELECTRIC;
+		if (name.equals("Metal Energy")) faceurl = LinkEnums.ENERGYSTEEL;
+		if (name.equals("Psychic Energy")) faceurl = LinkEnums.ENERGYPSYCHIC;
+
+		return faceurl;
 	}
 }
