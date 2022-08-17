@@ -468,15 +468,15 @@ public class TabletopParser implements Runnable
 		
 		out.println("Processing potential Basic Energy card with input string " + name);
 
-		if (name.equals("Fire Energy")) faceurl = LinkEnums.ENERGYFIRE;
-		if (name.equals("Grass Energy")) faceurl = LinkEnums.ENERGYGRASS;
-		if (name.equals("Water Energy")) faceurl = LinkEnums.ENERGYWATER;
-		if (name.equals("Darkness Energy")) faceurl = LinkEnums.ENERGYDARK;
-		if (name.equals("Fighting Energy")) faceurl = LinkEnums.ENERGYFIGHTING;
-		if (name.equals("Fairy Energy")) faceurl = LinkEnums.ENERGYFAIRY;
-		if (name.equals("Lightning Energy")) faceurl = LinkEnums.ENERGYELECTRIC;
-		if (name.equals("Metal Energy")) faceurl = LinkEnums.ENERGYSTEEL;
-		if (name.equals("Psychic Energy")) faceurl = LinkEnums.ENERGYPSYCHIC;
+		if (name.equals("Fire")) faceurl = LinkEnums.ENERGYFIRE;
+		if (name.equals("Grass")) faceurl = LinkEnums.ENERGYGRASS;
+		if (name.equals("Water")) faceurl = LinkEnums.ENERGYWATER;
+		if (name.equals("Darkness")) faceurl = LinkEnums.ENERGYDARK;
+		if (name.equals("Fighting")) faceurl = LinkEnums.ENERGYFIGHTING;
+		if (name.equals("Fairy")) faceurl = LinkEnums.ENERGYFAIRY;
+		if (name.equals("Lightning")) faceurl = LinkEnums.ENERGYELECTRIC;
+		if (name.equals("Metal")) faceurl = LinkEnums.ENERGYSTEEL;
+		if (name.equals("Psychic")) faceurl = LinkEnums.ENERGYPSYCHIC;
 
 		return faceurl;
 	}
