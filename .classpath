@@ -21,7 +21,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/andre/Documents/EclipseExports/gson-2.9.1.jar"/>
-	<classpathentry kind="lib" path="C:/Users/andre/Documents/EclipseExports/swt.jar"/>
+	<classpathentry kind="lib" path="C:/Users/andre/Documents/EclipseExports/swt.jar" sourcepath="C:/Users/andre/Documents/EclipseExports/swtsrc/org.eclipse.swt.win32.win32.x86_64.source_3.121.0.v20220701-1002.jar"/>
 	<classpathentry kind="lib" path="E:/Documents/JavaLibs/jackson-databind-2.13.3.jar"/>
 	<classpathentry kind="lib" path="E:/Documents/JavaLibs/jackson-core-2.13.3.jar"/>
 	<classpathentry kind="lib" path="E:/Documents/JavaLibs/jackson-core-2.12.7.jar"/>
@@ -29,5 +29,6 @@
 	<classpathentry kind="lib" path="E:/MCF_Eclipse/jsoup-1.15.2.jar"/>
 	<classpathentry kind="lib" path="E:/MCF_Eclipse/jsoup-1.15.2-javadoc.jar"/>
 	<classpathentry kind="lib" path="E:/MCF_Eclipse/jsoup-1.15.2-sources.jar"/>
+	<classpathentry kind="lib" path="C:/Users/andre/Documents/EclipseExports/org.eclipse.e4.ui.di-1.4.0.jar" sourcepath="C:/Users/andre/Documents/EclipseExports/org.eclipse.e4.ui.di-1.4.0-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
