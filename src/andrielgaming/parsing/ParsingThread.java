@@ -11,15 +11,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-import javax.swing.SwingWorker;
-
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Attributes;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
 import andrielgaming.ui.PokegearWindow;
 import andrielgaming.utils.LinkEnums;
@@ -31,6 +26,7 @@ public class ParsingThread extends Thread
 	public boolean specialEnergyFlag = false;
 	public String url = "";
 	public Display parent;
+	public int category = 0; // Will be 0 for "Not Checked", 1 for "Pokemon", 2 for "Trainer", and 3 for "Energy"
 	private static String cardDB = "https://pkmncards.com/?s=";
 
 	/**
@@ -86,12 +82,6 @@ public class ParsingThread extends Thread
 	@Override
 	public void run()
 	{
-		Display.getDefault().wake();
-		Display.getDefault().syncExec(() ->
-		{
-			Display.getDefault().readAndDispatch();
-		});
-
 		String flag = query[0];
 		String count = query[1];
 		String name = query[2];
@@ -100,51 +90,61 @@ public class ParsingThread extends Thread
 		int cardindex = 1;
 		boolean thumb = false;
 
-		System.out.print("Began worker thread for query- ");
+		//System.out.print("Began worker thread for query- ");
 		for (String q : query)
 			out.print(q + " ");
 		out.println();
 
 		try
 		{
-			Thread.sleep(3000);
+			Thread.sleep(1000);
 		} catch (InterruptedException e1)
 		{
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
 		}
 
 		specialEnergyFlag = true;
 		url = "";
 
 		// Attempt to parse the card
+		try
+		{
+			url = getImageSourceUrl(query, specialEnergyFlag, thumb);
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		String outp = "";
+		if (count.trim().equalsIgnoreCase("1"))
+		{
+			outp += "1 Copy of ";
+		}
+		else
+		{
+			outp += "" + count + " Copies of ";
+		}
+		outp += name + ", Set " + set + "[" + num + "]";
+		final String sender = outp;
 
 		Display.getDefault().wake();
-		Display.getDefault().asyncExec(() ->
+		Display.getDefault().syncExec(() ->
 		{
-			// Grab URL and thumbnail, if applicable
-			try
+			switch(category)
 			{
-				url = getImageSourceUrl(query, specialEnergyFlag, thumb);
-			} catch (IOException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				case 1:
+					PokegearWindow.addPokemonInfo(sender);
+					break;
+				case 2:
+					PokegearWindow.addTrainerInfo(sender);
+					break;
+				case 3:
+					PokegearWindow.addEnergyInfo(sender);
+					break;
+				default:
+					PokegearWindow.addEnergyInfo(sender);
+					break;
 			}
-
-			String outp = "";
-			if (count.trim().equalsIgnoreCase("1"))
-			{
-				outp += "1 Copy of ";
-			}
-			else
-			{
-				outp += "" + count + " Copies of ";
-			}
-			outp += name + ", Set " + set + "[" + num + "]";
-			final String sender = outp;
-
-			PokegearWindow.addCardInformation(sender);
 			PokegearWindow.addOutputInformation("Processing this card returned image URL: " + url);
 		});
 
@@ -159,12 +159,19 @@ public class ParsingThread extends Thread
 		{
 			// Update the progressBar
 			PokegearWindow.progressBar.setSelection(TabletopParser.loadBarIndex++);
+			PokegearWindow.incrementCounter(Integer.parseInt(count));
 		});
 
 		/* ||-------------------------------------------||
 		 * || This block is where the thread terminates ||
 		 * ||-------------------------------------------||
 		 */
+		try
+		{
+			Thread.sleep(750);
+		} catch (InterruptedException e1)
+		{
+		}
 		synchronized (this)
 		{
 			// Terminate
@@ -193,7 +200,7 @@ public class ParsingThread extends Thread
 		{
 			name = query[2]; // .replaceAll(" ","+");
 
-			out.println("Worker thread found " + name + " " + " Count {" + count + "} from " + set + " : " + num);
+			//out.println("Worker thread found " + name + " " + " Count {" + count + "} from " + set + " : " + num);
 
 			// TODO:: This check is for set promos, so I need to figure that shit out. This is just a wild-ass shot in the dark for now.
 			boolean promo = false;
@@ -205,62 +212,49 @@ public class ParsingThread extends Thread
 
 			String address = ("https://pkmncards.com/card/" + name.replaceAll(" ", "-") + "-" + set + "-" + num).toLowerCase();
 			Document pkmncards = null;
-			while (pkmncards == null)
+
+			out.println("Polling this address:: " + address);
+			try
 			{
-				try
+				pkmncards = Jsoup.connect(address).get();
+				
+				faceurl = pkmncards.select("a.card-image-link").first().absUrl("href");
+				
+				// Loop to search for lowest level subpage for any card with multiple results. Shouldn't ever loop more than once but serves as a good sanitycheck this way
+				if (faceurl.contains("https://pkmncards.com/card/"))
 				{
-					// FIXME - Occasional cards are being skipped or fetched entirely incorrectly
-					// Current solution mostly works but is throwing issues with 'Radiant Charizard PGO 11' for unknown reasons
-					out.println("Polling this address:: " + address);
-					pkmncards = Jsoup.connect(address).get();
-
-					if (pkmncards == null) out.println("For some reason, the webcrawler is unable to find a valid HTML Webpage to download. Please check the source website.");
-				} catch (Exception e)
-				{
-					out.println("DEBUG-------- Probable Set Agnostic Promo Card Found");
-					// Almost certainly an 'agnostic promo' if it falls through here, so try fetch again and replace vars if it succeeds
-					// if (promo)
-
-					if ((pkmncards = Jsoup.connect(address.replaceAll("-PR", "-PROMO")).get()) != null)
+					Display.getDefault().wake();
+					Display.getDefault().asyncExec(() ->
 					{
-						out.println("Throwing out previous address, replacing with promo-agnostic URL:: " + address.replaceAll("-PR", "-PROMO"));
-						tempname = tempname.replaceAll("+PR", "");
-						set = "PROMO";
+						PokegearWindow.addOutputInformation("Multiple versions of this card found, will check for and select a valid version.");
+					});
+
+					while (faceurl.contains("https://pkmncards.com/card/"))
+					{
+						faceurl = pkmncards.select("a.card-image-link").first().absUrl("href");
 					}
 				}
-				if (pkmncards.select("a.card-image-link").first() == null)
-				{
-					out.println("Will need to re-try after appropriate waiting period of 5 seconds.");
-					try
-					{
-						Thread.sleep(5000);
-					} catch (InterruptedException e1)
-					{
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-				}
-			}
-
-			// FIXME - This selector MIGHT be to blame, so lets check if 'href' works better than 'abs:href'
-			// New solution will be to grab ALL elements matching 'a.card-image-link' and checking for the pokemon name
-			faceurl = pkmncards.select("a.card-image-link").first().absUrl("href");
-
-			// Loop to search for lowest level subpage for any card with multiple results. Shouldn't ever loop more than once but serves as a good sanitycheck this way
-			if (!faceurl.contains("https://pkmncards.com/card/"))
+			} catch (MalformedURLException | NullPointerException | HttpStatusException e)
 			{
-				Display.getDefault().wake();
-				Display.getDefault().syncExec(() ->
+				//out.println("A retry is necessary for this card. Running query at " + cardDB + set + "+" + num);
+				Display.getDefault().asyncExec(() ->
 				{
-					PokegearWindow.addOutputInformation("Multiple versions of this card found, will check for and select a valid version.");
+					PokegearWindow.addOutputInformation("A retry is necessary for this card either because no result was found or the card is unique.");
 				});
-
-				while (!faceurl.contains("https://pkmncards.com/card/"))
-				{
-					faceurl = pkmncards.select("a.card-image-link").first().absUrl("href");
-				}
+				pkmncards = Jsoup.connect(cardDB + set + "+" + num).get();
+				faceurl = pkmncards.select("a.card-image-link").first().absUrl("href");
 			}
-
+			
+			// Find this card's category
+			String tempcat = pkmncards.select("div.type-evolves-is").select("span").select("a").first().text().replaceAll("Pok.mon", "Pokemon");
+			out.println("Temp category found:: " + tempcat);
+			if(tempcat.equals("Pokemon"))
+				category = 1;
+			else if(tempcat.equals("Trainer"))
+				category = 2;
+			else if(tempcat.equals("Energy"))
+				category = 3;
+			
 			// Set thumbnail if not set already
 			if (!TabletopParser.thumb) // In a nutshell- rip the image, decode it, re-encode it, save to disk
 			{
@@ -276,7 +270,7 @@ public class ParsingThread extends Thread
 					os.close();
 
 					Display.getDefault().wake();
-					Display.getDefault().syncExec(() ->
+					Display.getDefault().asyncExec(() ->
 					{
 						PokegearWindow.addOutputInformation("Deck thumbnail chosen and saved to disk.");
 					});
@@ -303,14 +297,7 @@ public class ParsingThread extends Thread
 		}
 		// Increment cardindex by number of this card present in deck
 		TabletopParser.cardindex += Integer.parseInt(count);
-		/*} catch (Exception n)
-		{
-			out.print("Whoops, I pressed the 'war crime' button, and the U.N. will soon convene to strongly condemn the following affront to humanity:: ");
-			n.printStackTrace();
-			out.println();
-			TabletopParser.errorcards.add(name + "+" + set + "+" + num);
-		}*/
-		out.println("Worker thread requested a face url, found " + faceurl);
+		//out.println("Worker thread requested a face url, found " + faceurl);
 		return faceurl;
 	}
 
@@ -331,7 +318,7 @@ public class ParsingThread extends Thread
 			PokegearWindow.addOutputInformation("Found probable basic energy card of name: " + name);
 		});
 
-		out.println("Found probable basic energy card of name: " + name);
+		//out.println("Found probable basic energy card of name: " + name);
 		if (name.equals("Fire") && !(name.split(" ")[0].equals("Energy"))) faceurl = LinkEnums.ENERGYFIRE;
 		if (name.equals("Grass") && !(name.split(" ")[0].equals("Energy"))) faceurl = LinkEnums.ENERGYGRASS;
 		if (name.equals("Water") && !(name.split(" ")[0].equals("Energy"))) faceurl = LinkEnums.ENERGYWATER;
@@ -344,5 +331,4 @@ public class ParsingThread extends Thread
 
 		return faceurl;
 	}
-
 }

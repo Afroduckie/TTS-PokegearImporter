@@ -1,9 +1,5 @@
 package andrielgaming.ui.panels;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -15,6 +11,9 @@ import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.wb.swt.SWTResourceManager;
+
+import andrielgaming.ui.PokegearWindow;
 
 /**		
  * @author - Andrew Kluttz, 2022
@@ -48,6 +47,8 @@ public class AnimatedCanvas extends Canvas
 	private static int DRAW_FLAGS = SWT.DRAW_MNEMONIC | SWT.DRAW_TAB | SWT.DRAW_TRANSPARENT | SWT.DRAW_DELIMITER;
 	public int gifx,
 			gify = 100;
+	private boolean runOnce = false;
+	private boolean runDone = false;
 
 	// Generic constructor, takes basic reqs for superclass
 	public AnimatedCanvas(Composite parent, int style)
@@ -68,28 +69,46 @@ public class AnimatedCanvas extends Canvas
 
 	void paintAnimations(PaintEvent event)
 	{
-		gc = new GC(this);
-		parent.update();
-		imageNumber = imageNumber == loader.data.length - 1 ? 0 : imageNumber + 1;
-		ImageData nextFrameData = loader.data[imageNumber];
-		gc.setBackground(new Color(255, 255, 255));
-		Image frameImage = new Image(Display.getCurrent(), nextFrameData);
-		gc.drawImage(frameImage, nextFrameData.x, nextFrameData.y);
-		frameImage.dispose();
-
-		// FIXME-- Redraw event is blocking the event dispatcher
-		parent.getDisplay().asyncExec(() ->
+		if ((runOnce && !runDone) || !runOnce)
 		{
-			this.redraw();
-			try
+			gc = new GC(this);
+			parent.update();
+			imageNumber = imageNumber == loader.data.length - 1 ? 0 : imageNumber + 1;
+			ImageData nextFrameData = loader.data[imageNumber];
+			gc.setBackground(new Color(255, 255, 255));
+			Image frameImage = new Image(Display.getCurrent(), nextFrameData);
+			gc.drawImage(frameImage, nextFrameData.x, nextFrameData.y);
+			frameImage.dispose();
+
+			// NOTE -- Must remain in async call or it will soft-block UI thread and cause stutters
+			parent.getDisplay().asyncExec(() ->
 			{
-				Thread.sleep(frameTimer);
-			} catch (InterruptedException e)
+				this.redraw();
+				try
+				{
+					Thread.sleep(frameTimer);
+				} catch (InterruptedException e)
+				{
+				}
+			});
+			if (imageNumber == loader.data.length - 1)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				runDone = true;
 			}
-		});
+		}
+		else
+		{
+			ImageData nextFrameData = loader.data[loader.data.length - 1];
+			Image frameImage = new Image(Display.getCurrent(), nextFrameData);
+			gc.drawImage(frameImage, nextFrameData.x, nextFrameData.y);
+			frameImage.dispose();
+		}
+	}
+
+	public void setSingleLoop()
+	{
+		runOnce = true;
+		runDone = false;
 	}
 
 	public void setScale(int x, int y)
@@ -101,6 +120,7 @@ public class AnimatedCanvas extends Canvas
 	public void setImageClasspath(String imgc)
 	{
 		this.imageClassPath = imgc;
+		this.setImage(SWTResourceManager.getImage(AnimatedCanvas.class, imageClassPath));
 	}
 
 	// Set animated GIF to be rendered on this panel

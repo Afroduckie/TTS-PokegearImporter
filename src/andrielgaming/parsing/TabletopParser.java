@@ -85,7 +85,7 @@ public class TabletopParser
 	public static String[] replacements =
 	{ "e", "", "e", "" };
 
-	public static String filePath = new JFileChooser().getFileSystemView().getDefaultDirectory().toString() + "\\My Games\\Tabletop Simulator\\Saves\\Saved Objects\\";
+	public static String filePath = PokegearWindow.TtsFilepath;//new JFileChooser().getFileSystemView().getDefaultDirectory().toString() + "\\My Games\\Tabletop Simulator\\Saves\\Saved Objects\\";
 	public static String deckName;
 	public static ProgressBar progressBar;
 	public static List guiDeckList;
@@ -107,6 +107,7 @@ public class TabletopParser
 	@SuppressWarnings("rawtypes")
 	public static void parse(String f, String fpath, String name, boolean showDebugLogs, ProgressBar p, List decklistGUI, Display p2) throws StreamWriteException, DatabindException, IOException, InterruptedException
 	{
+		filePath = PokegearWindow.TtsFilepath;
 		tooltips = new ArrayList<String>();
 		loadBarIndex = 1;
 		TabletopParser.parent = p2;
@@ -295,12 +296,6 @@ public class TabletopParser
 				while(!workers.isEmpty())
 				{
 					current = workers.poll();
-					if(current.getState() == Thread.State.NEW)
-					{
-						current.start();
-						while(current.isAlive())
-						{}
-					}
 					if(prev != null)
 					{
 						synchronized(current)
@@ -314,6 +309,12 @@ public class TabletopParser
 								e.printStackTrace();
 							}
 						}
+					}
+					if(current.getState() == Thread.State.NEW)
+					{
+						current.start();
+						while(current.isAlive())
+						{}
 					}
 					prev = current;
 				}
@@ -355,7 +356,7 @@ public class TabletopParser
 		{
 			@SuppressWarnings("unchecked")
 			ArrayList<String> vals = (ArrayList<String>) e.getValue();
-			defs.insertSerialValues(("" + UUID.randomUUID()).substring(0, 6), vals.get(0), chosenCardBack, vals.get(1), (int) e.getKey(), tooltips.get(tooltipindex++));
+			defs.insertSerialValues(("" + UUID.randomUUID()).substring(0, 6), vals.get(0), chosenCardBack, vals.get(1), (int) e.getKey(), null);//tooltips.get(tooltipindex++));
 		}
 
 		// Configure JSON printer and set it to print more-readable line indents.
