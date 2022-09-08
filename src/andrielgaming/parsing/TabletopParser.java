@@ -53,7 +53,7 @@ public class TabletopParser
 {
 	// Card faces and other hard-coded links moved to #LinkEnums
 	// User can change this in GUI as of version 1.4
-	public static String chosenCardBack = LinkEnums.DEFAULTCARDBACK;
+	public static String chosenCardBack = null;
 	public static BufferedWriter threadComWriter = new BufferedWriter(new OutputStreamWriter(System.out));
 	public static String name;
 	public static String num;
@@ -107,6 +107,10 @@ public class TabletopParser
 	@SuppressWarnings("rawtypes")
 	public static void parse(String f, String fpath, String name, boolean showDebugLogs, ProgressBar p, List decklistGUI, Display p2) throws StreamWriteException, DatabindException, IOException, InterruptedException
 	{
+		if(chosenCardBack == null)
+		{
+			chosenCardBack = LinkEnums.DEFAULTCARDBACK;
+		}
 		filePath = PokegearWindow.TtsFilepath;
 		tooltips = new ArrayList<String>();
 		loadBarIndex = 1;
@@ -417,6 +421,7 @@ public class TabletopParser
 			PokegearWindow.progressBar.setVisible(false);
 		});
 		execfinished = true;
+		chosenCardBack = null;
 	}
 
 	public static boolean runComplete()

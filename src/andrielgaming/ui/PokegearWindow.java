@@ -1121,6 +1121,9 @@ public class PokegearWindow
 		composite_3.setEnabled(true);
 		composite_3.setVisible(true);
 		importProgress.setControl(composite_3);
+		cardCount = 0;
+		cardCounter.setText("  Cards Imported: " + PokegearWindow.cardCount);
+		cardCounter.redraw();
 		tabFolder.setSelection(importProgress);
 
 		// Set the execution boolean and start the parsing job SwingWorker in TabletopParser
