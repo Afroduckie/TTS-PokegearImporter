@@ -64,7 +64,7 @@ public class ObjectStates
 		this.DeckIDs = DeckIDs;
 	}
 
-	public void addToCustomDeck(String guid, String furl, String burl, String nick, int cardid)
+	public void addToCustomDeck(String guid, String furl, String burl, String nick, int cardid, String tooltip)
 	{
 		LinkedTreeMap<String, Object> temp = new LinkedTreeMap<String, Object>();
 		temp.put("FaceURL", furl);
@@ -79,7 +79,7 @@ public class ObjectStates
 		temp1map.put(cardid, temp);
 		int deckid = TabletopParser.instanceIDs.get(cardid);
 		DeckCardContainer temp1 = new DeckCardContainer(nick, deckid, temp1map);
-		System.out.println("Fetched card ID for CustomDeck field " + cardid + " with master ID " + TabletopParser.instanceIDs.get(cardid));
+		//System.out.println("Fetched card ID for CustomDeck field " + cardid + " with master ID " + TabletopParser.instanceIDs.get(cardid));
 
 		// Genuinely have no fucking clue why changing this from 'cardid' to 'deckid / 100' made any damn difference as that SHOULD be what cardid fucking is.
 		// That said, everything breaks if you change these 2 lines. So don't do that.
@@ -88,7 +88,7 @@ public class ObjectStates
 
 		ContainedObjects.add(temp1);
 		masterlist.put(deckid, temp1);
-		System.out.println("[RESULTSET] Card URL Received :: " + furl + "\n");
+		this.Description = tooltip;
 	}
 
 	public TreeMap<String, LinkedTreeMap<String, Object>> getCustomDeck()

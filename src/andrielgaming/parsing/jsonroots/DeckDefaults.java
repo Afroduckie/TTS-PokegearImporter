@@ -70,9 +70,9 @@ public class DeckDefaults
 		ObjectStates[0].setCustomDeck(CustomDeck);
 	}
 
-	public void insertSerialValues(String guid, String furl, String burl, String nick, int cardid)
+	public void insertSerialValues(String guid, String furl, String burl, String nick, int cardid, String tooltip)
 	{
-		ObjectStates[0].addToCustomDeck(guid, furl, burl, nick, cardid);
+		ObjectStates[0].addToCustomDeck(guid, furl, burl, nick, cardid, tooltip);
 	}
 
 	public void setDeckIDs(ArrayList<Integer> DeckIDs)
