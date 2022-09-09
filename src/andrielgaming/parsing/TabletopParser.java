@@ -356,11 +356,23 @@ public class TabletopParser
 
 		// Write the info for each distinct card, including a random GUID that for some reason still works in TTS
 		int tooltipindex = 0;
+		Entry prev = null;
 		for (Entry e : instanceURLs.entrySet())
 		{
+			if(tooltipindex == 0)
+			{
+				prev = e;
+			}
+			
 			@SuppressWarnings("unchecked")
 			ArrayList<String> vals = (ArrayList<String>) e.getValue();
-			defs.insertSerialValues(("" + UUID.randomUUID()).substring(0, 6), vals.get(0), chosenCardBack, vals.get(1), (int) e.getKey(), null);//tooltips.get(tooltipindex++));
+			out.println("Tooltips list size:: " + tooltips.size());
+			defs.insertSerialValues(("" + UUID.randomUUID()).substring(0, 6), vals.get(0), chosenCardBack, vals.get(1), (int) e.getKey(), tooltips.get(tooltipindex));
+			if(!e.equals(prev))
+			{
+				tooltipindex++;
+				prev = e;
+			}
 		}
 
 		// Configure JSON printer and set it to print more-readable line indents.
@@ -424,6 +436,17 @@ public class TabletopParser
 		chosenCardBack = null;
 	}
 
+	// Static function for any class to filter invalid unicode text
+	public static String filterString(String input)
+	{
+		String formatted = input;
+		formatted = formatted.replaceAll("Pok.", "Poke");				// Remove invalid accent 'e' in Pokemon
+		formatted = formatted.replaceAll("opponent.s", "opponent's");	// PKMNCards.com uses an invalid unicode apostrophe
+		formatted = formatted.replaceAll("n.t", "n't");				
+		formatted = formatted.replaceAll("Pok.mon.s", "Pokemon's");
+		return formatted;
+	}
+	
 	public static boolean runComplete()
 	{
 		return execfinished;

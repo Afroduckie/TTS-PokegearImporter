@@ -88,7 +88,7 @@ public class ObjectStates
 
 		ContainedObjects.add(temp1);
 		masterlist.put(deckid, temp1);
-		this.Description = tooltip;
+		temp1.Description = tooltip;
 	}
 
 	public TreeMap<String, LinkedTreeMap<String, Object>> getCustomDeck()
