@@ -10,13 +10,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
-
 import org.eclipse.swt.widgets.Display;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-
 import andrielgaming.ui.PokegearWindow;
 import andrielgaming.utils.LinkEnums;
 
@@ -268,7 +266,7 @@ public class ParsingThread extends Thread
 					InputStream in = urlImage.openStream();
 					byte[] buffer = new byte[4096];
 					int n = -1;
-					OutputStream os = new FileOutputStream(TabletopParser.filePath + "\\" + TabletopParser.deckName + ".png");
+					OutputStream os = new FileOutputStream(PokegearWindow.getPath() + "\\" + TabletopParser.deckName + ".png");
 					while ((n = in.read(buffer)) != -1)
 						os.write(buffer, 0, n);
 					os.close();

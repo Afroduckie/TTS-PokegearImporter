@@ -15,20 +15,26 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-18">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk-19.0.1">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/andre/Documents/EclipseExports/gson-2.9.1.jar"/>
-	<classpathentry kind="lib" path="C:/Users/andre/Documents/EclipseExports/swt.jar" sourcepath="C:/Users/andre/Documents/EclipseExports/swtsrc/org.eclipse.swt.win32.win32.x86_64.source_3.121.0.v20220701-1002.jar"/>
-	<classpathentry kind="lib" path="E:/Documents/JavaLibs/jackson-databind-2.13.3.jar"/>
-	<classpathentry kind="lib" path="E:/Documents/JavaLibs/jackson-core-2.13.3.jar"/>
-	<classpathentry kind="lib" path="E:/Documents/JavaLibs/jackson-core-2.12.7.jar"/>
-	<classpathentry kind="lib" path="E:/Documents/JavaLibs/jackson-annotations-2.13.3.jar"/>
-	<classpathentry kind="lib" path="E:/MCF_Eclipse/jsoup-1.15.2.jar"/>
-	<classpathentry kind="lib" path="E:/MCF_Eclipse/jsoup-1.15.2-javadoc.jar"/>
-	<classpathentry kind="lib" path="E:/MCF_Eclipse/jsoup-1.15.2-sources.jar"/>
-	<classpathentry kind="lib" path="C:/Users/andre/Documents/EclipseExports/org.eclipse.e4.ui.di-1.4.0.jar" sourcepath="C:/Users/andre/Documents/EclipseExports/org.eclipse.e4.ui.di-1.4.0-sources.jar"/>
+	<classpathentry kind="lib" path="libs" sourcepath="libs">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="TTS-PokegearImporter/libs"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="libs/gson-2.9.1.jar"/>
+	<classpathentry kind="lib" path="libs/jackson-annotations-2.13.3.jar"/>
+	<classpathentry kind="lib" path="libs/jackson-annotations-2.13.3-sources.jar"/>
+	<classpathentry kind="lib" path="libs/jackson-core-2.13.3.jar"/>
+	<classpathentry kind="lib" path="libs/jackson-core-2.13.3-sources.jar"/>
+	<classpathentry kind="lib" path="libs/jackson-databind-2.13.3.jar"/>
+	<classpathentry kind="lib" path="libs/jackson-databind-2.13.3-sources.jar"/>
+	<classpathentry kind="lib" path="libs/org.eclipse.e4.ui.di-1.4.0.v20210621-1133.jar"/>
+	<classpathentry kind="lib" path="/home/deck/TTS-PokegearImporter/libs/swt-linux.jar"/>
+	<classpathentry kind="lib" path="libs/jsoup-1.15.2.jar"/>
+	<classpathentry kind="lib" path="libs/jsoup-1.15.2-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

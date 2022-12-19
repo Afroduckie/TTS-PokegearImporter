@@ -85,7 +85,7 @@ public class TabletopParser
 	public static String[] replacements =
 	{ "e", "", "e", "" };
 
-	public static String filePath = PokegearWindow.TtsFilepath;//new JFileChooser().getFileSystemView().getDefaultDirectory().toString() + "\\My Games\\Tabletop Simulator\\Saves\\Saved Objects\\";
+	public static String filePath = PokegearWindow.getPath(); //new JFileChooser().getFileSystemView().getDefaultDirectory().toString() + "\\My Games\\Tabletop Simulator\\Saves\\Saved Objects\\";
 	public static String deckName;
 	public static ProgressBar progressBar;
 	public static List guiDeckList;
@@ -111,7 +111,7 @@ public class TabletopParser
 		{
 			chosenCardBack = LinkEnums.DEFAULTCARDBACK;
 		}
-		filePath = PokegearWindow.TtsFilepath;
+		filePath = PokegearWindow.getPath();
 		tooltips = new ArrayList<String>();
 		loadBarIndex = 1;
 		TabletopParser.parent = p2;
@@ -201,7 +201,7 @@ public class TabletopParser
 		}
 
 		// Initialize the values needed to start parsing all the worker threads
-		filePath = new JFileChooser().getFileSystemView().getDefaultDirectory().toString() + "\\My Games\\Tabletop Simulator\\Saves\\Saved Objects\\";
+		filePath = PokegearWindow.getPath();
 		deckName = name;
 		progressBar = p;
 		guiDeckList = decklistGUI;
@@ -391,7 +391,7 @@ public class TabletopParser
 			// Writes the DeckDefaults object containing all of our imported data by first writing it to a String and then writing to JSON file
 			jsondefaults = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(defs);
 			json = mapper.readValue(jsondefaults, Object.class);
-			writ.writeValue(Paths.get(filePath + "\\" + deckName + ".json").toFile(), json);
+			writ.writeValue(Paths.get(filePath + "/" + deckName + ".json").toFile(), json);
 			jsondefaults = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(defs);
 		} catch (Exception e1)
 		{

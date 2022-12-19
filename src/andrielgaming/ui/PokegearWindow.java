@@ -6,7 +6,9 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Scanner;
 
+import javax.swing.JFileChooser;
 import javax.swing.SwingWorker;
 
 import org.eclipse.swt.SWT;
@@ -45,8 +47,6 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.jsoup.nodes.Document;
-
-import andrielgaming.Pokegear;
 import andrielgaming.parsing.TabletopParser;
 import andrielgaming.ui.panels.AnimatedCanvas;
 import andrielgaming.ui.panels.CompositeDialog;
@@ -109,13 +109,32 @@ public class PokegearWindow
 	private boolean maximized = false;
 	private Text txtHereYouCan;
 	private Text txtIfTheFilepath;
-	public static String TtsFilepath = Pokegear.getPath();
+	public static String TtsFilepath = PokegearWindow.getPath();
 	public static int imgDefWidth;
 	public static int imgDefHeight;
 	public static double shellRatio;
 
+	// Default file path with system user injected, usually works
+	private static String usr = System.getProperty("user.name");
+	private static Scanner s = new Scanner(System.in);
+
+	public static String getPath()
+	{
+		String defPath = "";
+		//	If Linux
+		if (System.getProperty("os.name").contains("nix") || System.getProperty("os.name").contains("nux") || System.getProperty("os.name").contains("aix"))
+			defPath = "/home/" + usr + "/.local/share/Tabletop Simulator/Saves/Saved Objects/";
+		// 	If Windows
+		else if (System.getProperty("os.name").contains("Windows"))
+			defPath = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
+		return defPath;
+	}
+	
 	public static void main(String[] args) throws Exception
 	{
+		/* 	Here is where I would put my OS-dependent runs... if I had any lol
+		 * 
+		 */
 		shellListener = new Listener()
 		{
 			public void handleEvent(Event e)
@@ -125,7 +144,7 @@ public class PokegearWindow
 				{
 					case SWT.Resize:
 						// shlPokegearDeckImporter.setSize(shlPokegearDeckImporter.getClientArea().width, shlPokegearDeckImporter.getClientArea().height);
-						shlPokegearDeckImporter.setMinimumSize(shlPokegearDeckImporter.getClientArea().width, shlPokegearDeckImporter.getClientArea().height);
+						shlPokegearDeckImporter.setMinimumSize(800, 600);
 						shlPokegearDeckImporter.layout(true, true);
 						shlPokegearDeckImporter.redraw();
 						Rectangle screenSize = Display.getCurrent().getPrimaryMonitor().getBounds();
@@ -382,7 +401,7 @@ public class PokegearWindow
 			public void widgetSelected(SelectionEvent e)
 			{
 				String decklist = styledText.getText();
-				String defPath = Pokegear.getPath();
+				String defPath = PokegearWindow.getPath();
 				String name = text.getText();
 
 				// Send info over to the parser
@@ -438,7 +457,7 @@ public class PokegearWindow
 		txtSavedObjsPath = new Text(composite_2, SWT.BORDER | SWT.READ_ONLY);
 		txtSavedObjsPath.setFont(SWTResourceManager.getFont("Pokemon Fire Red", 16, SWT.BOLD));
 		txtSavedObjsPath.setEditable(true);
-		txtSavedObjsPath.setText(Pokegear.getPath());
+		txtSavedObjsPath.setText(PokegearWindow.getPath());
 		txtSavedObjsPath.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 3, 1));
 		txtSavedObjsPath.addVerifyListener(new VerifyListener()
 		{
@@ -634,14 +653,15 @@ public class PokegearWindow
 
 		TabItem tab_help = new TabItem(tabFolder, SWT.NONE);
 		tab_help.setToolTipText("How to use Pokegear and important information");
-		tab_help.setText("Help");
-
+		tab_help.setText("Help (Disabled- Broken in Linux)");
+		
 		Composite composite = new Composite(tabFolder, SWT.NO_BACKGROUND);
 		composite.setForeground(SWTResourceManager.getColor(51, 0, 0));
 		composite.setBackground(SWTResourceManager.getColor(SWT.COLOR_TRANSPARENT));
 		composite.setFont(SWTResourceManager.getFont("Pokemon Fire Red", 18, SWT.NORMAL));
 		tab_help.setControl(composite);
 		composite.setLayout(new GridLayout(1, false));
+		composite.setEnabled(false);
 
 		lbl_helpTab = new Label(composite, SWT.NONE);
 		lbl_helpTab.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
@@ -667,7 +687,7 @@ public class PokegearWindow
 		xpndtmNewExpanditem_1.setText("What deck list formats will work with Pokegear?");
 
 		txtThisProgramWas = new Text(expandBar, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP | SWT.MULTI);
-		txtThisProgramWas.setEnabled(false);
+		txtThisProgramWas.setEnabled(true);
 		txtThisProgramWas.setText("This program works with any standard deck-list format, so long as they have the following information:\r\n\r\n[Number of Cards] [Card Name] [Set Abbreviation] [Set Number]\r\n\r\nAs an example, take this export for 3 copies of Arceus VSTAR from Brilliant Stars: \r\n\t\n3 Arceus VSTAR BRS 123\r\n\r\nAny deck-list that follows this format will work, but there are certain symbols that the parser is set to ignore.\r\nFor example, Pokemon TCG Online would export the above Arceus VSTAR with an asterisk in front:\r\n\n\t* 3 Arceus VSTAR BRS 123\r\n\r\nThis is fine, because the program will ignore the symbol. Additionally, it will ignore any lines that don't start with either a delimeter or a number (indicating a quantity of cards). For example:\r\n\r\nPokémon (23)\r\n\n4 Arceus V BRS 122\r\n\n* 3 Arceus VSTAR BRS 123\r\n\r\nThis is acceptable. It will skip the first line and import the next 2.");
 		txtThisProgramWas.setFont(SWTResourceManager.getFont("Pokemon Fire Red", 18, SWT.NORMAL));
 		txtThisProgramWas.setEditable(false);
@@ -680,7 +700,7 @@ public class PokegearWindow
 		xpndtmNewExpanditem_2.setText("Where can I get a deck list?");
 
 		txtIfYouAre = new Text(expandBar, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP | SWT.MULTI);
-		txtIfYouAre.setEnabled(false);
+		txtIfYouAre.setEnabled(true);
 		txtIfYouAre.setText("If you are seeking to make one yourself, you can use online tools or even Pokemon TCG Online, which is free. PTCGO allows you to create decklists even if you use unowned cards, you just need to click the \"Show Not Owned\" checkbox. For pre-made decklists, LimitlessTCG is my personal choice.\r\n\r\nIn the future, PokeGear may include a tool allowing you to build a deck right here in the program instead. Until then, use one of the following sites or tools:\r\n\r\nLimitlessTCG.com\r\nJustinbasil.com\r\nPokemon TCG Online\r\nPokemoncard.io/deck-search/");
 		txtIfYouAre.setFont(SWTResourceManager.getFont("Pokemon Fire Red", 18, SWT.NORMAL));
 		txtIfYouAre.setEditable(false);
@@ -694,7 +714,7 @@ public class PokegearWindow
 		xpndtmNewExpanditem_3.setText("How do I use my new deck in Tabletop Simulator?");
 
 		txtForTheDecks = new Text(expandBar, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP | SWT.MULTI);
-		txtForTheDecks.setEnabled(false);
+		txtForTheDecks.setEnabled(true);
 		txtForTheDecks.setText("For the decks Pokegear creates to be spawnable in Tabletop Simulator, you need to make sure your file path is correctly configured. If you are running this on a Windows system, PokeGear likely has already found the file path on its own. You can check this in the 'Options' tab. If you are not on Windows or this path is incorrect, follow the instructions there to change it.\r\n\r\nThe folder you are looking for is 'Saved Objects'.\r\n\r\nFor Windows systems, find it at ~/Documents/My Games/Tabletop Simulator/Saves/Saved Objects\r\nFor Linux systems, find it at ~/. local/share/Tabletop Simulator/Saves/Saved Objects \r\nFor Mac systems, find it at ~/Library/Tabletop Simulator/Saves/Saved Objects");
 		txtForTheDecks.setFont(SWTResourceManager.getFont("Pokemon Fire Red", 18, SWT.NORMAL));
 		txtForTheDecks.setEditable(false);
